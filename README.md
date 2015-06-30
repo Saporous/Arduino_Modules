@@ -33,3 +33,14 @@ board via SPI with S0 on D4, SC on D5, and CS on D6.
 A project utilizing a potentiometer, onboard LED, and Arduino interrupt
 functionality to flash the onboard LED every time a falling edge is detected
 on the interrupt pin 
+
+## DSKDM Arduino
+Varius modules used to interface with the DSKDM.
+
+### DSKDM_KEYPAD
+Relays pressed keys on the DSKDM keyboard to Serial output. TODO: handle
+debouncing and I2C output.
+
+### DSKDM_LED
+Uses the Arduino to power 15 LEDs on the DSKDM that will be used to signal
+various status messages to the user. TODO: Handle I2C input.

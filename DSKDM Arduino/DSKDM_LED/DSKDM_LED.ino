@@ -31,16 +31,23 @@ void setup() {
 }
 
 void loop() {
-  
+   for(int k = 0; k < 15; k++){
+    digitalWrite(LED[k], HIGH);
+  }
+  /*
   for(int i = 0; i < 15; i++){
-    digitalWrite(LED[i], value);
+    for(int j = 0; j < 15; j++){
+      digitalWrite(LED[j], LOW);
+    }
+    digitalWrite(LED[i], HIGH);
     delay(500);
     Serial.print(LED[i]);
-    Serial.print(" Value: ");
-    Serial.println((int)value);
+    Serial.print(" LED: ");
+    Serial.println((String)LED[i]);
   }
   if(value == HIGH){
     value = LOW;
   }
   else value = HIGH;
+  */
 }

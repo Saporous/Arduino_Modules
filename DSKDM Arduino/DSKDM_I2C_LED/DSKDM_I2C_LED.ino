@@ -5,6 +5,7 @@
 #include <Wire.h>
 
 #define I2C_ADDRESS 4
+#define LED_COUNT 15
 
 #if (defined(__AVR_ATmega328P__))
   #define LED0 2
@@ -24,11 +25,12 @@
   #define LED14 A3 
 #endif
 
-int LED[15] = {LED0,LED1,LED2,LED3,LED4,LED5,LED6,LED7,LED8,LED9,LED10,LED11,LED12,LED13,LED14};
+int LED[LED_COUNT] = {LED0,LED1,LED2,LED3,LED4,LED5,LED6,LED7,LED8,LED9,LED10,LED11,LED12,LED13,LED14};
 int value = LOW;
 
 void setup() {
-  Wire.begin(I2C_ADDRESS)
+  Wire.begin(I2C_ADDRESS);
+  Wire.onReceive(receiveEvent);
   Serial.begin(9600);
   for(int i = 0; i < 15; i++){
     pinMode(LED[i], OUTPUT);
@@ -36,23 +38,32 @@ void setup() {
 }
 
 void loop() {
-   for(int k = 0; k < 15; k++){
-    digitalWrite(LED[k], HIGH);
-  }
-  /*
-  for(int i = 0; i < 15; i++){
-    for(int j = 0; j < 15; j++){
-      digitalWrite(LED[j], LOW);
-    }
-    digitalWrite(LED[i], HIGH);
-    delay(500);
-    Serial.print(LED[i]);
-    Serial.print(" LED: ");
-    Serial.println((String)LED[i]);
-  }
-  if(value == HIGH){
-    value = LOW;
-  }
-  else value = HIGH;
-  */
+  delay(10);
 }
+
+void receiveEvent(int numBytesReceived){
+  byte temp = 0;
+  int counter = 0;
+  // loop through the entire message
+  while(Wire.available()){
+    temp = Wire.read();
+    temp = (int)temp;
+    counter++;
+    counter = counter % LED_COUNT;
+      temp -= 48;
+      if(temp == 1){
+        digitalWrite(LED[counter], HIGH);
+        Serial.print(counter);
+        Serial.println(" Set to HIGH");
+      }
+      else if(temp == 0){
+        digitalWrite(LED[counter], LOW);
+        Serial.print(counter);
+        Serial.println(" Set to LOW");
+      }
+      else
+        Serial.println("UNKNOWN BUTTON SENT");
+  }
+}
+
+

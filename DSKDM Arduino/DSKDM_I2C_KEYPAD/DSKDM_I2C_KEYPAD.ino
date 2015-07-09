@@ -27,6 +27,7 @@ int KEY[NUMKEYS] = {KEY0,KEY1,KEY2,KEY3,KEY4,KEY5,KEY6,KEY7,KEY8,KEY9,KEY10};
 int value = LOW;
 
 void setup() {
+  Wire.begin();
   Serial.begin(9600);
   for(int i = 0; i < NUMKEYS; i++){
     pinMode(KEY[i], INPUT_PULLUP);
@@ -38,12 +39,19 @@ void loop() {
   for(int i = 0; i < NUMKEYS; i++){
     if(!digitalRead(KEY[i])){
       readFlag = 1;
-      temp += KEY[i];
-      temp += " ";
+      //temp += KEY[i];
+      temp += '1';
     }
-    delay(10);
+    else temp += '0';
+    delay(1);
   }
-  if(readFlag) Serial.println(temp);
+  if(readFlag){
+    Wire.beginTransmission(I2C_ADDRESS);
+    Wire.write(temp.c_str());
+    Wire.endTransmission();
+    delay(10);
+    Serial.println(temp);
+  }
   else Serial.println("NO KEYS PRESSED");
   readFlag = 0;
   

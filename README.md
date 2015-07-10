@@ -1,5 +1,5 @@
 # Arduino_Modules
-Code for applications of specific Arduino Modules implemented on either the Arduino Leonardo or Nano boards.
+Code for applications of specific Arduino Modules implemented on either the Arduino Leonardo or Nano boards. All Arduino programming files included should contain all relevant files for standalone operation. Wiring diagrams for certain modules are included.
 
 ## ADC 
 Demonstration of the Arduino's ADC capability on pin A7, works on Nano.
@@ -7,6 +7,9 @@ Demonstration of the Arduino's ADC capability on pin A7, works on Nano.
 ## Arduino-PID-Library
 A library created by Brett Beauregard <br3ttb@gmail.com> brettbeauregard.com
 that implements PID using A0 to control A3.
+
+## Digital humidity temperature sensor
+An implementation of the DHT11 module that sends read humidity and temperature via serial.
 
 ## HC-16 LiquidCrystal_I2C For Arduino 1602LCD Display
 A basic implementation of the SainSmart HC-16 breakout board. It uses I2C

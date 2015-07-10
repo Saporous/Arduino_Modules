@@ -30,13 +30,13 @@
 #define D6_pin  6
 #define D7_pin  7
 
-
-
 int SO = 4;
 int SC = 5;
 int CS = 6;
 
-int n = 1;
+
+#define AVG_TEMP_NUM 10
+double avgTemp[AVG_TEMP_NUM];
 
 LiquidCrystal_I2C	lcd(I2C_ADDR,En_pin,Rw_pin,Rs_pin,D4_pin,D5_pin,D6_pin,D7_pin);
 MAX6675 thermocouple(SC, CS, SO);
@@ -53,21 +53,38 @@ void setup()
   lcd.setBacklightPin(BACKLIGHT_PIN,POSITIVE);
   lcd.setBacklight(HIGH);
   
+  thermocouple.readCelsius();
+  lcd.setCursor(0,0);
+  lcd.print("Getting average...");
+  delay(1000);
+  for(int i = 0; i < AVG_TEMP_NUM; i++){
+    avgTemp[i] = thermocouple.readCelsius();
+    delay(100);
+  }
+  lcd.clear();
 }
 
 void loop()
 {
-  lcd.setCursor(0,0);
-  double temp = thermocouple.readCelsius();
+  double averageTemperature = 0;
+  for(int i = AVG_TEMP_NUM-1; i > 0; i--){
+    avgTemp[i] = avgTemp[i-1];
+  }
+  avgTemp[0] = thermocouple.readCelsius();
+  for(int i = 0; i < AVG_TEMP_NUM; i++){
+    averageTemperature += avgTemp[i];
+  }
+  averageTemperature /= AVG_TEMP_NUM;
 //  lcd.print(thermocouple.readCelsius());
 //  lcd.println(" C ");
-  lcd.print(temp);
+  lcd.setCursor(0,0);
+  lcd.print(averageTemperature);
   lcd.print(" C ");
-  Serial.print(temp);
+  Serial.print(averageTemperature);
   Serial.println(" C ");
   
   lcd.setCursor ( 0, 1 );        // go to the 2nd line
-  lcd.print(thermocouple.readFahrenheit());
+  lcd.print(averageTemperature*1.8 + 32);
   lcd.print(" F ");
   delay(500);
 }

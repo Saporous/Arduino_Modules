@@ -30,95 +30,106 @@
 #define D5_pin  5
 #define D6_pin  6
 #define D7_pin  7
-#define PID_PIN_INPUT 0
-#define PID_PIN_RELAY 6
 
+#define PIN_INPUT 0
+#define RELAY_PIN 6
 
 int SO = 4;
 int SC = 5;
 int CS = 6;
 
-int n = 1;
-int avgTemp[10];
 
+#define AVG_TEMP_NUM 10
+double avgTemp[AVG_TEMP_NUM];
 
+LiquidCrystal_I2C  lcd(I2C_ADDR,En_pin,Rw_pin,Rs_pin,D4_pin,D5_pin,D6_pin,D7_pin);
+MAX6675 thermocouple(SC, CS, SO);
 
 //Define Variables we'll be connecting to
 double Setpoint, Input, Output;
 
 //Specify the links and initial tuning parameters
-double Kp=2, Ki=5, Kd=1;
+double Kp=2, Ki=0, Kd=1;
 PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
 
 int WindowSize = 5000;
 unsigned long windowStartTime;
-LiquidCrystal_I2C	lcd(I2C_ADDR,En_pin,Rw_pin,Rs_pin,D4_pin,D5_pin,D6_pin,D7_pin);
-MAX6675 thermocouple(SC, CS, SO);
-// make a cute degree symbol
-uint8_t degree[8]  = {140,146,146,140,128,128,128,128};
 
 void setup()
 {
+  windowStartTime = millis();
+
+  //initialize the variables we're linked to
+  Setpoint = 100;
+
+  //tell the PID to range between 0 and the full window size
+  myPID.SetOutputLimits(0, WindowSize);
+
+  //turn the PID on
+  myPID.SetMode(AUTOMATIC);
+  
   Serial.begin(9600);
   digitalWrite(2, HIGH);
   lcd.begin (20,4);
-
-// populate temperature output array
-  for(int i = 0; i < 10; i++){
-    avgTemp[i] = thermocouple.readFahrenheit();
-    delay(1);
-  }
   
 // Switch on the backlight
   lcd.setBacklightPin(BACKLIGHT_PIN,POSITIVE);
   lcd.setBacklight(HIGH);
-/*
-  // PID Initialization
-  windowStartTime = millis();
-  //initialize the variables we're linked to
-  Setpoint = 100;
-  //tell the PID to range between 0 and the full window size
-  myPID.SetOutputLimits(0, WindowSize);
-  //turn the PID on
-  myPID.SetMode(AUTOMATIC);
-  */
+  
+  thermocouple.readCelsius();
+  lcd.setCursor(0,0);
+  lcd.print("Getting average...");
+  delay(1000);
+  for(int i = 0; i < AVG_TEMP_NUM; i++){
+    avgTemp[i] = thermocouple.readCelsius();
+    delay(100);
+  }
+  lcd.clear();
 }
 
 void loop()
 {
-/*
-  // PID Stuff
-  Input = thermocouple.readFahrenheit();
+  // --------------- PID CODE ---------------
+  double averageTemperature = 0;
+  for(int i = AVG_TEMP_NUM-1; i > 0; i--){
+    avgTemp[i] = avgTemp[i-1];
+  }
+  avgTemp[0] = thermocouple.readCelsius();
+  for(int i = 0; i < AVG_TEMP_NUM; i++){
+    averageTemperature += avgTemp[i];
+  }
+  averageTemperature /= AVG_TEMP_NUM;
+
+  //Input = analogRead(PIN_INPUT);
+  Input = 30;
   myPID.Compute();
-
-   turn the output pin on/off based on pid output
-
-
   if (millis() - windowStartTime > WindowSize)
   { //time to shift the Relay Window
     windowStartTime += WindowSize;
   }
-  if (Output < millis() - windowStartTime) digitalWrite(PID_PIN_RELAY, HIGH);
-  else digitalWrite(PID_PIN_RELAY, LOW);
-*/
-  for(int i = 0; i < 500; i++){
-    avgTemp[i%10] = thermocouple.readFahrenheit();
-    int temp = 0;
-    for(int j = 0; j < 10; j++){
-      temp += avgTemp[j];
-    }
-    temp /= 10;
-    
-    // LCD Update stuff
-    lcd.setCursor(0,0);
-    lcd.print(thermocouple.readCelsius());
-    lcd.println(" C ");
-    Serial.print(thermocouple.readCelsius());
-    Serial.println(" C ");
-    
-    lcd.setCursor ( 0, 1 );        // go to the 2nd line
-    lcd.print(temp);
-    lcd.println(" F ");
+  if (Output < millis() - windowStartTime){
+    lcd.setCursor(10, 0);
+    lcd.print("HIGH");
+    digitalWrite(RELAY_PIN, HIGH);
   }
-  delay(1);
+  else{
+    lcd.setCursor(10,0);
+    lcd.print("LOW ");
+    digitalWrite(RELAY_PIN, LOW);
+  }
+
+
+  // --------------- LCD CODE ---------------
+//  lcd.print(thermocouple.readCelsius());
+//  lcd.println(" C ");
+  lcd.setCursor(0,0);
+  lcd.print(averageTemperature);
+  lcd.print(" C ");
+  Serial.print(averageTemperature);
+  Serial.println(" C ");
+  
+  lcd.setCursor ( 0, 1 );        // go to the 2nd line
+  lcd.print(averageTemperature*1.8 + 32);
+  lcd.print(" F ");
+  delay(500);
 }

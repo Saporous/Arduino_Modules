@@ -58,16 +58,16 @@ void setup()
 void loop()
 {
   lcd.setCursor(0,0);
-  int temp = thermocouple.readCelsius();
+  double temp = thermocouple.readCelsius();
 //  lcd.print(thermocouple.readCelsius());
 //  lcd.println(" C ");
   lcd.print(temp);
-  lcd.println(" C ");
+  lcd.print(" C ");
   Serial.print(temp);
   Serial.println(" C ");
   
   lcd.setCursor ( 0, 1 );        // go to the 2nd line
   lcd.print(thermocouple.readFahrenheit());
-  lcd.println(" F ");
+  lcd.print(" F ");
   delay(500);
 }
